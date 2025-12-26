@@ -136,6 +136,7 @@
                                                 <th scope="col">Jogador</th>
                                                 <th scope="col" class="text-center">Tipo</th>
                                                 <th scope="col" class="text-end">Saldo</th>
+                                                <th scope="col" class="text-end">Ações</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -172,6 +173,13 @@
                                                             <i class="fas fa-dollar-sign me-1"></i>
                                                             @(player.Wallet?.Balance.ToString("N2") ?? "0,00")
                                                         </span>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <a href="@Url.Action("SendMoney", "Transaction", new { userId = player.Id })" 
+                                                           class="btn btn-sm btn-success">
+                                                            <i class="fas fa-paper-plane me-1"></i>
+                                                            Enviar
+                                                        </a>
                                                     </td>
                                                 </tr>
                                             }
@@ -220,6 +228,13 @@
                                             </span>
                                         </div>
                                     </div>
+                                    <div class="mt-3">
+                                        <a href="@Url.Action("SendMoney", "Transaction", new { userId = player.Id })" 
+                                           class="btn btn-sm btn-success w-100">
+                                            <i class="fas fa-paper-plane me-1"></i>
+                                            Enviar Dinheiro
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         }
@@ -227,5 +242,26 @@
                 }
             </div>
         </div>
+
+        @* Botões flutuantes do banqueiro *@
+        @if (Model.Player.IsBanker)
+        {
+            <div class="position-fixed bottom-0 end-0 p-4" style="z-index: 1000;">
+                <div class="d-flex flex-column gap-2">
+                    <a href="@Url.Action("DistributeInitialBalance", "Transaction")" 
+                       class="btn btn-success btn-lg rounded-pill shadow"
+                       title="Distribuir Saldo Inicial">
+                        <i class="fas fa-coins me-2"></i>
+                        Distribuir Saldo
+                    </a>
+                    <a href="@Url.Action("Charge", "Transaction")" 
+                       class="btn btn-warning btn-lg rounded-pill shadow"
+                       title="Cobrar Jogadores">
+                        <i class="fas fa-hand-holding-usd me-2"></i>
+                        Cobrar
+                    </a>
+                </div>
+            </div>
+        }
     }
 </div>

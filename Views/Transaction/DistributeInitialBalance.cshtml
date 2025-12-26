@@ -1,0 +1,116 @@
+@model Monolypix.ViewModels.DistributeInitialBalanceViewModel
+
+@{
+    ViewData["Title"] = "Distribuir Saldo Inicial";
+}
+
+@if (TempData["ResultMessage"] != null)
+{
+    var result = new Monolypix.Models.Result<object>
+    {
+        Success = (bool)(TempData["ResultSuccess"] ?? false),
+        Message = TempData["ResultMessage"]?.ToString() ?? string.Empty
+    };
+    if (!result.Success)
+    {
+        await Html.RenderPartialAsync("_Toast", result);
+    }
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2">
+                <i class="fas fa-coins me-2"></i>
+                Distribuir Saldo Inicial
+            </h1>
+            <p class="text-muted mb-0">
+                Sessão: @Model.GameSessionName
+            </p>
+        </div>
+        <div class="col-auto">
+            <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>
+                Voltar
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-gift me-2"></i>
+                        Crédito Inicial: $1.500,00
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Cada jogador receberá <strong>$1.500,00</strong> como saldo inicial.
+                        Jogadores que já receberam o crédito serão ignorados.
+                    </div>
+
+                    <!-- Lista de jogadores -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fas fa-users me-1"></i>
+                            Jogadores (@Model.Players.Count)
+                        </label>
+                        <div class="list-group">
+                            @foreach (var player in Model.Players)
+                            {
+                                var hasBalance = player.Wallet?.Balance > 0;
+                                <div class="list-group-item d-flex align-items-center @(hasBalance ? "list-group-item-secondary" : "")">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                         style="width: 35px; height: 35px; background-color: @player.AvatarColor;">
+                                        <i class="fas fa-user text-white small"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <span>@player.UserName</span>
+                                        @if (player.IsBanker)
+                                        {
+                                            <span class="badge bg-warning text-dark ms-2">Banqueiro</span>
+                                        }
+                                    </div>
+                                    <div class="text-end">
+                                        @if (hasBalance)
+                                        {
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-check me-1"></i>
+                                                Já creditado
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-clock me-1"></i>
+                                                Pendente
+                                            </span>
+                                        }
+                                        <div class="text-success fw-bold small mt-1">
+                                            $@(player.Wallet?.Balance.ToString("N2") ?? "0,00")
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <form asp-action="DistributeInitialBalance" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="GameSessionId" />
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-coins me-2"></i>
+                                Distribuir Saldo Inicial
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
