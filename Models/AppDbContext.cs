@@ -28,8 +28,8 @@ namespace Monolypix.Models
 
             modelBuilder.Entity<Wallet>()
                 .HasOne(w => w.User)
-                .WithMany()
-                .HasForeignKey(w => w.UserId)
+                .WithOne(u => u.Wallet)
+                .HasForeignKey<Wallet>(w => w.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Wallet>()

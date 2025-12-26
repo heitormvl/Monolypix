@@ -18,6 +18,8 @@
   <ItemGroup>
     <Folder Include="Enums\" />
     <Folder Include="Services\" />
+    <Folder Include="Views\GameSessions\" />
+    <Folder Include="Views\Users\" />
   </ItemGroup>
 
 </Project>

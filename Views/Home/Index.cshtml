@@ -1,8 +1,231 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model Monolypix.ViewModels.IndexViewModel
+
+@{
+    ViewData["Title"] = "Página Inicial";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@if (TempData["ResultMessage"] != null)
+{
+    var result = new Monolypix.Models.Result<object>
+    {
+        Success = (bool)(TempData["ResultSuccess"] ?? false),
+        Message = TempData["ResultMessage"]?.ToString() ?? string.Empty
+    };
+    await Html.RenderPartialAsync("_Toast", result);
+}
+
+<div class="container-fluid py-4">
+    @if (!User.Identity?.IsAuthenticated ?? true)
+    {
+        <!-- Não autenticado - Convite para entrar em uma sessão -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-6">
+                <div class="text-center mb-4">
+                    <h1 class="display-4">
+                        <i class="fas fa-dice me-3"></i>
+                        Bem-vindo ao Monolypix
+                    </h1>
+                    <p class="lead text-muted">Gerencie suas finanças no jogo de tabuleiro</p>
+                </div>
+                
+                <div class="card shadow-sm">
+                    <div class="card-body p-5 text-center">
+                        <i class="fas fa-gamepad fa-4x text-primary mb-4"></i>
+                        <h3 class="mb-3">Pronto para jogar?</h3>
+                        <p class="text-muted mb-4">
+                            Entre em uma sessão de jogo para começar a gerenciar suas transações e competir com outros jogadores.
+                        </p>
+                        <a href="@Url.Action("Index", "GameSessions")" class="btn btn-primary btn-lg">
+                            <i class="fas fa-play me-2"></i>
+                            Entrar em uma Sessão
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Autenticado - Mostra dados da sessão e jogadores -->
+        <div class="row mb-4">
+            <div class="col">
+                <h1 class="h2">
+                    <i class="fas fa-home me-2"></i>
+                    @Model.GameSession.Name
+                </h1>
+                <p class="text-muted mb-0">
+                    <i class="fas fa-clock me-1"></i>
+                    Sessão iniciada em @Model.GameSession.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                </p>
+            </div>
+            <div class="col-auto">
+                <span class="badge bg-success fs-6">
+                    <i class="fas fa-circle-dot me-1"></i>
+                    Ativa
+                </span>
+            </div>
+        </div>
+
+        <!-- Card do Jogador Atual -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user me-2"></i>
+                            Seu Perfil
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" 
+                                     style="width: 80px; height: 80px; background-color: @Model.Player.AvatarColor;">
+                                    <i class="fas fa-user fa-2x text-white"></i>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <h4 class="mb-1">@Model.Player.UserName</h4>
+                                @if (Model.Player.IsBanker)
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-crown me-1"></i>
+                                        Banqueiro
+                                    </span>
+                                }
+                            </div>
+                            <div class="col-auto text-end">
+                                <div class="text-muted small">Saldo</div>
+                                <h3 class="mb-0 text-success">
+                                    <i class="fas fa-dollar-sign me-1"></i>
+                                    @(Model.Player.Wallet?.Balance.ToString("N2") ?? "0,00")
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Outros Jogadores -->
+        <div class="row">
+            <div class="col-12">
+                <h3 class="mb-3">
+                    <i class="fas fa-users me-2"></i>
+                    Outros Jogadores
+                    <span class="badge bg-secondary">@Model.PlayersInSession.Count</span>
+                </h3>
+
+                @if (!Model.PlayersInSession.Any())
+                {
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Você é o único jogador nesta sessão no momento.
+                    </div>
+                }
+                else
+                {
+                    <!-- Desktop View - Table -->
+                    <div class="d-none d-md-block">
+                        <div class="card shadow-sm">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th scope="col">Jogador</th>
+                                                <th scope="col" class="text-center">Tipo</th>
+                                                <th scope="col" class="text-end">Saldo</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var player in Model.PlayersInSession)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                                                 style="width: 40px; height: 40px; background-color: @player.AvatarColor;">
+                                                                <i class="fas fa-user text-white"></i>
+                                                            </div>
+                                                            <span class="fw-semibold">@player.UserName</span>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        @if (player.IsBanker)
+                                                        {
+                                                            <span class="badge bg-warning text-dark">
+                                                                <i class="fas fa-crown me-1"></i>
+                                                                Banqueiro
+                                                            </span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge bg-secondary">
+                                                                <i class="fas fa-user me-1"></i>
+                                                                Jogador
+                                                            </span>
+                                                        }
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <span class="fw-bold text-success">
+                                                            <i class="fas fa-dollar-sign me-1"></i>
+                                                            @(player.Wallet?.Balance.ToString("N2") ?? "0,00")
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mobile View - Cards -->
+                    <div class="d-md-none">
+                        @foreach (var player in Model.PlayersInSession)
+                        {
+                            <div class="card shadow-sm mb-3">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col-auto">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center" 
+                                                 style="width: 50px; height: 50px; background-color: @player.AvatarColor;">
+                                                <i class="fas fa-user text-white"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <h6 class="mb-1">@player.UserName</h6>
+                                            @if (player.IsBanker)
+                                            {
+                                                <span class="badge bg-warning text-dark small">
+                                                    <i class="fas fa-crown me-1"></i>
+                                                    Banqueiro
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary small">
+                                                    <i class="fas fa-user me-1"></i>
+                                                    Jogador
+                                                </span>
+                                            }
+                                        </div>
+                                        <div class="col-auto text-end">
+                                            <div class="text-muted small">Saldo</div>
+                                            <span class="fw-bold text-success">
+                                                <i class="fas fa-dollar-sign"></i>
+                                                @(player.Wallet?.Balance.ToString("N2") ?? "0,00")
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
 </div>

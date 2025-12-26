@@ -9,15 +9,18 @@ public class Wallet
 {
     [Key]
     public Guid Id { get; set; }
+
     [Required]
     [Display(Name = "Saldo")]
     [Range(0, double.MaxValue, ErrorMessage = "O saldo não pode ser negativo.")]
     [Precision(18, 2)]
     public decimal Balance { get; set; } = 0m;
+
     [Required]
     [Display(Name = "Usuário")]    
     public Guid UserId { get; set; }
     public User? User { get; set; }
+    
     [Required]
     [Display(Name = "Sessão de Jogo")]    
     public Guid GameSessionId { get; set; }
